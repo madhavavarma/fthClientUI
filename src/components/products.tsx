@@ -10,40 +10,76 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
+import { IProduct } from '../models/IProduct';
+import { IOrderDetails } from '../models/IOrderDetails';
+import { useState } from 'react';
 
-function createData(
-    vegetable: string,
-    measurement: string,
-    quantity: number
-    
-  ) {
-    return { vegetable, measurement, quantity };
-  }
-  
-  const rows = [
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    createData('Tomato', "kg", 29),
-    
-  ];
-
+ 
 export default function Products() {
 
-    const top100Films = [
-        { label: 'Tomato', year: 1994 },
-        { label: 'Brinjal', year: 1972 },
-        { label: 'Potato', year: 1974 },
+    const [orderDetails, setOrderDetails] = useState<IOrderDetails[]>([]);
+    const [product, setProduct] = useState<IProduct>();
+    const [errorMsg, setErrorMsg] = useState("");
+    const [quantity, setQuantity] = useState("");
+
+    const products: IProduct[] = [
+        { id: 1, name:'Tomato', measurement: "kg" },
+        { id: 2, name:'Kale', measurement: "kg" },
+        { id: 3, name:'Spinach', measurement: "kg" },
+        { id: 4, name:'Coconuts', measurement: "No" },
+        { id: 5, name:'Potato', measurement: "kg" }       
       ];
 
-      return (
+    // User selected the product from dropdown to add quantity
+    const selectProduct = (event: any, value: any) => {
+
+        if(orderDetails.find(orderDetail => orderDetail.productId === value.id)) {
+            setErrorMsg("Product is added to the Order. Edit from the Order List");
+            return;
+        }
+
+        setProduct(products.find(product => product.id === value.id));
+        setErrorMsg("");
+    }
+
+    // User clicked on Add after selecting product and quantity
+    const addProductToOrder = () => {
+        if(product) {
+
+            var productInOrderDetail = orderDetails.find(od => od.productId === product.id);
+
+            if(productInOrderDetail) {
+                productInOrderDetail.quantity = +quantity;
+            }
+
+            if(!productInOrderDetail) {
+                setOrderDetails([{
+                    id: -1,
+                    measurement: product?.measurement,
+                    productId: product?.id,
+                    productName: product?.name,
+                    quantity: +quantity
+                }, ...orderDetails]);
+            }
+            
+            setProduct(undefined);
+            setQuantity("");
+        }
+    }
+
+    // Remove product from User Orders
+    const removeProduct = (id: number) => {
+        var removedOrderDetails = orderDetails.filter(x => x.productId !== id);
+        setOrderDetails(removedOrderDetails);
+    }
+
+    // Edit product from User Order
+    const editProduct = (orderDetails: IOrderDetails) => {
+        setProduct(products.find(product => product.id === orderDetails.productId));
+        setQuantity(orderDetails.quantity.toString());
+    }
+
+    return (
         <div className="m-4 mt-12 flex flex-col items-center justify-center ">
             <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 ">
             <img className="w-8 h-8 mr-2" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo" />
@@ -51,12 +87,13 @@ export default function Products() {
         </a>
             <div className="flex flex-row gap-4">
                 <Autocomplete
-                disablePortal
-                id="combo-box-demo"
-                options={top100Films}
-                sx={{ width: 200 }}
-            
-                renderInput={(params) => <TextField {...params} label="Vegetable" />}
+                    disablePortal
+                    id="combo-box-demo"
+                    options={products.map(x => ( {id: x.id, label: x.name} ))}
+                    sx={{ width: 200 }}
+                    renderInput={(params) => <TextField {...params} label="Vegetable" />}
+                    onChange={selectProduct}
+                    value = {product ? ( {id: product.id, label: product.name}) : null}
                 />
                 <OutlinedInput
                     id="outlined-adornment-weight"
@@ -65,9 +102,14 @@ export default function Products() {
                     inputProps={{
                     'aria-label': 'weight',
                     }}
+                    value = {quantity}
+                    onChange={x => setQuantity(x.target.value)}
           />
 
-                <Button variant="contained">ADD</Button>
+                <Button variant="contained" onClick={addProductToOrder} disabled = {!product || !quantity}>ADD</Button>
+            </div>
+            <div className="mt-4">
+                {errorMsg}
             </div>
             <div className="mt-8 w-full flex flex-col items-center justify-center">
                 <TableContainer component={Paper} sx={{  maxWidth: 600 }}>
@@ -80,22 +122,24 @@ export default function Products() {
                         </TableRow>
                         </TableHead>
                         <TableBody>
-                        {rows.map((row) => (
+                        {orderDetails.map((row) => (
                             <TableRow
-                            key={row.vegetable}
+                            key={row.productName}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                             >
-                            <TableCell component="th" scope="row">
-                                {row.vegetable} 
-                            </TableCell>
+                                <TableCell component="th" scope="row">
+                                    {row.productName} 
+                                </TableCell>
+                                
+                                <TableCell >{row.quantity} {row.measurement}</TableCell>
                             
-                            <TableCell >{row.quantity} {row.measurement}</TableCell>
-                           
-                            <TableCell>
-                                Edit Remove
-                            </TableCell>
+                                <TableCell >
+                                    <div className="flex flex-row gap-4">
+                                        <Button variant="contained" onClick={x => editProduct(row)}>Edit</Button>
+                                        <Button variant="contained" onClick={x => removeProduct(row.productId)}>Remove</Button>
+                                    </div>
+                                </TableCell>
                             </TableRow>
-                            
                         ))}
                         </TableBody>
                     </Table>
