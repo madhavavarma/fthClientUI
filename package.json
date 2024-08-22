@@ -1,9 +1,9 @@
 {
-  "name": "fthclientui",
+  "name": "fthClientUI",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://madhavavarma.github.io/fthclientui/",
+  "homepage": "https://madhavavarma.github.io/fthClientUI/",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -17,7 +17,8 @@
     "@emotion/styled": "^11.13.0",
     "@mui/material": "^5.16.7",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
